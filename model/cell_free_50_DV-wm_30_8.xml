@@ -1,0 +1,265 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<MorpheusModel version="4">
+    <Description>
+        <Details></Details>
+        <Title>Virus transmission</Title>
+    </Description>
+    <Space>
+        <Lattice class="square">
+            <Neighborhood>
+                <Order>1</Order>
+            </Neighborhood>
+            <Size value="10, 10,   0.0" symbol="size"/>
+        </Lattice>
+        <SpaceSymbol symbol="space"/>
+    </Space>
+    <Time>
+        <StartTime value="0"/>
+        <StopTime value="50"/>
+        <TimeSymbol symbol="time"/>
+    </Time>
+    <Analysis>
+        <ModelGraph include-tags="#untagged" reduced="false" format="dot"/>
+        <Gnuplotter decorate="true" time-step="1.0">
+            <Plot>
+                <Cells value="cell.type">
+                    <ColorMap>
+                        <Color value="0" color="grey80"/>
+                        <Color value="1" color="green"/>
+                    </ColorMap>
+                </Cells>
+                <CellLabels value="V"/>
+            </Plot>
+            <Terminal name="png"/>
+        </Gnuplotter>
+        <Gnuplotter time-step="1.0">
+            <Plot>
+                <Field symbol-ref="Ve">
+                    <ColorMap>
+                        <Color value="0" color="light-blue"/>
+                        <Color value="0.5" color="light-green"/>
+                    </ColorMap>
+                </Field>
+            </Plot>
+            <Terminal name="png"/>
+        </Gnuplotter>
+        <!--    <Disabled>
+        <Gnuplotter time-step="1.0">
+            <Plot>
+                <Cells value="V_c2c">
+                    <ColorMap>
+                        <Color value="0" color="light-blue"/>
+                        <Color value="1" color="light-green"/>
+                    </ColorMap>
+                </Cells>
+            </Plot>
+            <Terminal name="png"/>
+        </Gnuplotter>
+    </Disabled>
+-->
+        <Logger time-step="1.0">
+            <Input>
+                <Symbol symbol-ref="V"/>
+            </Input>
+            <Output>
+                <TextOutput/>
+            </Output>
+        </Logger>
+        <Logger time-step="1.0" name="populations">
+            <Input>
+                <Symbol symbol-ref="celltype.target.size"/>
+                <Symbol symbol-ref="celltype.infected.size"/>
+            </Input>
+            <Output>
+                <TextOutput/>
+            </Output>
+        </Logger>
+        <Logger time-step="1.0">
+            <Input>
+                <Symbol symbol-ref="cell.id"/>
+                <Symbol symbol-ref="cell.type"/>
+                <Symbol symbol-ref="cell.center.x"/>
+                <Symbol symbol-ref="cell.center.y"/>
+                <Symbol symbol-ref="Vi"/>
+                <!--    <Disabled>
+        <Symbol symbol-ref="V_c2c"/>
+    </Disabled>
+-->
+            </Input>
+            <Output>
+                <TextOutput/>
+            </Output>
+        </Logger>
+        <ContactLogger time-step="1.0" ignore-medium="true"/>
+        <Logger time-step="1.0">
+            <Input>
+                <Symbol symbol-ref="space.x"/>
+                <Symbol symbol-ref="space.y"/>
+                <Symbol symbol-ref="cell.id"/>
+            </Input>
+            <Output>
+                <TextOutput/>
+            </Output>
+        </Logger>
+        <Logger time-step="1000">
+            <Input>
+                <!--    <Disabled>
+        <Symbol symbol-ref="b_c2c"/>
+    </Disabled>
+-->
+                <Symbol symbol-ref="b_cf"/>
+                <Symbol symbol-ref="c_V"/>
+                <Symbol symbol-ref="D_V"/>
+                <!--    <Disabled>
+        <Symbol symbol-ref="l_c2c"/>
+    </Disabled>
+-->
+                <Symbol symbol-ref="p_V"/>
+            </Input>
+            <Output>
+                <TextOutput/>
+            </Output>
+        </Logger>
+        <Logger time-step="1.0">
+            <Input>
+                <Symbol symbol-ref="Ve"/>
+            </Input>
+            <Output>
+                <TextOutput/>
+            </Output>
+        </Logger>
+    </Analysis>
+    <Global>
+        <Constant value="0" name="cell-free transmission rate" symbol="b_cf"/>
+        <!--    <Disabled>
+        <Constant value="0.0" name="cell2cell transmission rate" symbol="b_c2c"/>
+    </Disabled>
+-->
+        <Constant value="0.0" symbol="D_V"/>
+        <!--    <Disabled>
+        <Constant value="0.0" symbol="l_c2c"/>
+    </Disabled>
+-->
+        <Field value="0.0" name="extracellular virus" symbol="Ve">
+            <Diffusion well-mixed="true" rate="0"/>
+        </Field>
+        <System time-step="1.0" name="extracellular viral load" time-scaling="1.0" solver="Runge-Kutta [fixed, O(4)]">
+            <DiffEqn symbol-ref="Ve">
+                <Expression>(p_V*V-c_V*Ve)*run_model</Expression>
+            </DiffEqn>
+        </System>
+        <Constant value="0.0" name="virus production" symbol="V"/>
+        <Event>
+            <Condition>time >= 10</Condition>
+            <Rule symbol-ref="run_model">
+                <Expression>1</Expression>
+            </Rule>
+        </Event>
+        <Variable value="0" symbol="run_model"/>
+        <Constant value="0.0" name="clearance rate of extracellular virus" symbol="c_V"/>
+        <Constant value="0" name="virus export rate" symbol="p_V"/>
+    </Global>
+    <CellTypes>
+        <CellType name="target" class="biological">
+            <Property value="0.0" name="viral load" symbol="V"/>
+            <VolumeConstraint name="target volume" strength="1" target="2"/>
+            <ConnectivityConstraint/>
+            <SurfaceConstraint mode="aspherity" strength="3" target="1"/>
+            <ChangeCellType name="cell becomes infected" newCellType="infected">
+                <Condition>rand_uni(0,1) &lt;= p_cf and run_model==1</Condition>
+                <Triggers>
+                    <Rule symbol-ref="V">
+                        <Expression>1</Expression>
+                    </Rule>
+                </Triggers>
+            </ChangeCellType>
+            <Function name="probability to be infected at certain time point" symbol="p_cf">
+                <Expression>1-exp(-b_cf*Vi)</Expression>
+            </Function>
+            <Property value="0.0" name="viral load per cell" symbol="Vi"/>
+            <Mapper name="extracellular to cellular viral load">
+                <Input value="Ve"/>
+                <Output mapping="sum" symbol-ref="Vi"/>
+            </Mapper>
+            <FreezeMotion>
+                <Condition>run_model == 1</Condition>
+            </FreezeMotion>
+            <!--    <Disabled>
+        <Function name="probability to be infected at certain time point" symbol="p_c2c">
+            <Expression>1-exp(-b_c2c*V_c2c)</Expression>
+        </Function>
+    </Disabled>
+-->
+            <!--    <Disabled>
+        <ChangeCellType name="cell becomes infected" newCellType="infected">
+            <Condition>rand_uni(0,1) &lt;= p_c2c and run_model==1</Condition>
+            <Triggers>
+                <Rule symbol-ref="V">
+                    <Expression>1</Expression>
+                </Rule>
+            </Triggers>
+        </ChangeCellType>
+    </Disabled>
+-->
+            <!--    <Disabled>
+        <NeighborhoodReporter name="viral load of neighboring cells">
+            <Input noflux-cell-medium="true" scaling="length" value="l_c2c*V"/>
+            <Output mapping="sum" symbol-ref="V_c2c"/>
+        </NeighborhoodReporter>
+    </Disabled>
+-->
+            <!--    <Disabled>
+        <Property value="0.0" symbol="V_c2c"/>
+    </Disabled>
+-->
+        </CellType>
+        <CellType name="infected" class="biological">
+            <Property value="1" name="viral load" symbol="V"/>
+            <VolumeConstraint name="target volume" strength="1" target="2"/>
+            <ConnectivityConstraint/>
+            <SurfaceConstraint mode="aspherity" strength="3" target="1"/>
+            <FreezeMotion>
+                <Condition>run_model == 1</Condition>
+            </FreezeMotion>
+            <!--    <Disabled>
+        <NeighborhoodReporter name="viral load of neighboring cells">
+            <Input noflux-cell-medium="true" scaling="length" value="l_c2c*V"/>
+            <Output mapping="sum" symbol-ref="V_c2c"/>
+        </NeighborhoodReporter>
+    </Disabled>
+-->
+            <!--    <Disabled>
+        <Property value="0.0" symbol="V_c2c"/>
+    </Disabled>
+-->
+            <Mapper name="extracellular to cellular viral load">
+                <Input value="Ve"/>
+                <Output mapping="sum" symbol-ref="Vi"/>
+            </Mapper>
+            <Property value="0.0" name="viral load per cell" symbol="Vi"/>
+        </CellType>
+    </CellTypes>
+    <CPM>
+        <Interaction/>
+        <ShapeSurface scaling="norm">
+            <Neighborhood>
+                <Order>6</Order>
+            </Neighborhood>
+        </ShapeSurface>
+        <MonteCarloSampler stepper="edgelist">
+            <MCSDuration value="1"/>
+            <MetropolisKinetics temperature="1"/>
+            <Neighborhood>
+                <Order>2</Order>
+            </Neighborhood>
+        </MonteCarloSampler>
+    </CPM>
+    <CellPopulations>
+        <Population type="target" name="target strat population" size="49">
+            <InitDistribute number-of-cells="49" probability="0.1" mode="random"/>
+        </Population>
+        <Population type="infected" name="infected " size="1">
+            <InitDistribute number-of-cells="1" probability="0.1" mode="random"/>
+        </Population>
+    </CellPopulations>
+</MorpheusModel>
