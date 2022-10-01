@@ -9,7 +9,7 @@
             <Neighborhood>
                 <Order>1</Order>
             </Neighborhood>
-            <Size value="10, 10,   0.0" symbol="size"/>
+            <Size symbol="size" value="10, 10,   0.0"/>
         </Lattice>
         <SpaceSymbol symbol="space"/>
     </Space>
@@ -19,13 +19,13 @@
         <TimeSymbol symbol="time"/>
     </Time>
     <Analysis>
-        <ModelGraph include-tags="#untagged" reduced="false" format="dot"/>
+        <ModelGraph format="dot" include-tags="#untagged" reduced="false"/>
         <Gnuplotter decorate="true" time-step="1.0">
             <Plot>
                 <Cells value="cell.type">
                     <ColorMap>
-                        <Color value="0" color="grey80"/>
-                        <Color value="1" color="green"/>
+                        <Color color="grey80" value="0"/>
+                        <Color color="green" value="1"/>
                     </ColorMap>
                 </Cells>
                 <CellLabels value="V"/>
@@ -36,8 +36,8 @@
             <Plot>
                 <Field symbol-ref="Ve">
                     <ColorMap>
-                        <Color value="0" color="light-blue"/>
-                        <Color value="0.5" color="light-green"/>
+                        <Color color="light-blue" value="0"/>
+                        <Color color="light-green" value="0.5"/>
                     </ColorMap>
                 </Field>
             </Plot>
@@ -48,8 +48,8 @@
             <Plot>
                 <Cells value="V_c2c">
                     <ColorMap>
-                        <Color value="0" color="light-blue"/>
-                        <Color value="1" color="light-green"/>
+                        <Color color="light-blue" value="0"/>
+                        <Color color="light-green" value="1"/>
                     </ColorMap>
                 </Cells>
             </Plot>
@@ -65,7 +65,7 @@
                 <TextOutput/>
             </Output>
         </Logger>
-        <Logger time-step="1.0" name="populations">
+        <Logger name="populations" time-step="1.0">
             <Input>
                 <Symbol symbol-ref="celltype.target.size"/>
                 <Symbol symbol-ref="celltype.infected.size"/>
@@ -130,41 +130,41 @@
         </Logger>
     </Analysis>
     <Global>
-        <Constant value="0" name="cell-free transmission rate" symbol="b_cf"/>
+        <Constant name="cell-free transmission rate" symbol="b_cf" value="0"/>
         <!--    <Disabled>
-        <Constant value="0.0" name="cell2cell transmission rate" symbol="b_c2c"/>
+        <Constant name="cell2cell transmission rate" symbol="b_c2c" value="0.0"/>
     </Disabled>
 -->
-        <Constant value="0.0" symbol="D_V"/>
+        <Constant symbol="D_V" value="0.0"/>
         <!--    <Disabled>
-        <Constant value="0.0" symbol="l_c2c"/>
+        <Constant symbol="l_c2c" value="0.0"/>
     </Disabled>
 -->
-        <Field value="0.0" name="extracellular virus" symbol="Ve">
+        <Field name="extracellular virus" symbol="Ve" value="0.0">
             <Diffusion well-mixed="true" rate="0"/>
         </Field>
-        <System time-step="1.0" name="extracellular viral load" time-scaling="1.0" solver="Runge-Kutta [fixed, O(4)]">
+        <System name="extracellular viral load" time-scaling="1.0" solver="Runge-Kutta [fixed, O(4)]" time-step="1.0">
             <DiffEqn symbol-ref="Ve">
                 <Expression>(p_V*V-c_V*Ve)*run_model</Expression>
             </DiffEqn>
         </System>
-        <Constant value="0.0" name="virus production" symbol="V"/>
+        <Constant name="virus production" symbol="V" value="0.0"/>
         <Event>
             <Condition>time >= 10</Condition>
             <Rule symbol-ref="run_model">
                 <Expression>1</Expression>
             </Rule>
         </Event>
-        <Variable value="0" symbol="run_model"/>
-        <Constant value="0.0" name="clearance rate of extracellular virus" symbol="c_V"/>
-        <Constant value="0" name="virus export rate" symbol="p_V"/>
+        <Variable symbol="run_model" value="0"/>
+        <Constant name="clearance rate of extracellular virus" symbol="c_V" value="0.0"/>
+        <Constant name="virus export rate" symbol="p_V" value="0"/>
     </Global>
     <CellTypes>
         <CellType name="target" class="biological">
-            <Property value="0.0" name="viral load" symbol="V"/>
+            <Property name="viral load" symbol="V" value="0.0"/>
             <VolumeConstraint name="target volume" strength="1" target="2"/>
             <ConnectivityConstraint/>
-            <SurfaceConstraint mode="aspherity" strength="3" target="1"/>
+            <SurfaceConstraint strength="3" mode="aspherity" target="1"/>
             <ChangeCellType name="cell becomes infected" newCellType="infected">
                 <Condition>rand_uni(0,1) &lt;= p_cf and run_model==1</Condition>
                 <Triggers>
@@ -176,7 +176,7 @@
             <Function name="probability to be infected at certain time point" symbol="p_cf">
                 <Expression>1-exp(-b_cf*Vi)</Expression>
             </Function>
-            <Property value="0.0" name="viral load per cell" symbol="Vi"/>
+            <Property name="viral load per cell" symbol="Vi" value="0.0"/>
             <Mapper name="extracellular to cellular viral load">
                 <Input value="Ve"/>
                 <Output mapping="sum" symbol-ref="Vi"/>
@@ -209,15 +209,15 @@
     </Disabled>
 -->
             <!--    <Disabled>
-        <Property value="0.0" symbol="V_c2c"/>
+        <Property symbol="V_c2c" value="0.0"/>
     </Disabled>
 -->
         </CellType>
         <CellType name="infected" class="biological">
-            <Property value="1" name="viral load" symbol="V"/>
+            <Property name="viral load" symbol="V" value="1"/>
             <VolumeConstraint name="target volume" strength="1" target="2"/>
             <ConnectivityConstraint/>
-            <SurfaceConstraint mode="aspherity" strength="3" target="1"/>
+            <SurfaceConstraint strength="3" mode="aspherity" target="1"/>
             <FreezeMotion>
                 <Condition>run_model == 1</Condition>
             </FreezeMotion>
@@ -229,14 +229,14 @@
     </Disabled>
 -->
             <!--    <Disabled>
-        <Property value="0.0" symbol="V_c2c"/>
+        <Property symbol="V_c2c" value="0.0"/>
     </Disabled>
 -->
             <Mapper name="extracellular to cellular viral load">
                 <Input value="Ve"/>
                 <Output mapping="sum" symbol-ref="Vi"/>
             </Mapper>
-            <Property value="0.0" name="viral load per cell" symbol="Vi"/>
+            <Property name="viral load per cell" symbol="Vi" value="0.0"/>
         </CellType>
     </CellTypes>
     <CPM>
@@ -256,10 +256,10 @@
     </CPM>
     <CellPopulations>
         <Population type="target" name="target strat population" size="49">
-            <InitDistribute number-of-cells="49" probability="0.1" mode="random"/>
+            <InitDistribute mode="random" number-of-cells="49" probability="0.1"/>
         </Population>
         <Population type="infected" name="infected " size="1">
-            <InitDistribute number-of-cells="1" probability="0.1" mode="random"/>
+            <InitDistribute mode="random" number-of-cells="1" probability="0.1"/>
         </Population>
     </CellPopulations>
 </MorpheusModel>
